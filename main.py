@@ -53,3 +53,11 @@ def forecast():
     )
 
     return r.json()
+
+
+@app.route("/reset")
+def reset():
+    global LAT, LNG
+    LAT = 60.192059
+    LNG = 24.945831
+    return "Server reset"
