@@ -1,2 +1,4 @@
-env
 .env
+env
+weather-app
+__pycache__
