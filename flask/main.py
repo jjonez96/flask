@@ -19,6 +19,7 @@ def receive_location():
     data = request.json
     latitude = data.get("latitude")
     longitude = data.get("longitude")
+
     global LAT, LNG
     LAT = latitude
     LNG = longitude
@@ -27,16 +28,23 @@ def receive_location():
 
 @app.route("/current")
 def current():
-    r = requests.get(
-        f"{BASE_URL}/weather?&lat={LAT}&lon={LNG}&appid={API_KEY}&units=metric"
-    )
-    response = r.json()
-    icon = response["weather"][0]["icon"]
-    icon_url = f"http://openweathermap.org/img/w/{icon}.png"
-    icon = {"icon": icon_url}
-    response.update(icon)
-
-    return response
+    try:
+        r = requests.get(
+            f"{BASE_URL}/weather?&lat={LAT}&lon={LNG}&appid={API_KEY}&units=metric"
+        )
+        r.raise_for_status()  # raise an error for non-2xx response codes
+        response = r.json()
+        icon = response["weather"][0]["icon"]
+        icon_url = f"http://openweathermap.org/img/w/{icon}.png"
+        icon = {"icon": icon_url}
+        response.update(icon)
+        return response
+    except requests.exceptions.HTTPError as e:
+        # handle HTTP errors
+        return f"An HTTP error occurred: {e}"
+    except requests.exceptions.RequestException as e:
+        # handle other request errors
+        return f"A request error occurred: {e}"
 
 
 @app.route("/forecast")
@@ -44,4 +52,5 @@ def forecast():
     r = requests.get(
         f"{BASE_URL}/forecast?lat={LAT}&lon={LNG}&appid={API_KEY}&units=metric"
     )
+
     return r.json()
