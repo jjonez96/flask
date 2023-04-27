@@ -1,7 +1,7 @@
 import os
 
 import requests
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -11,6 +11,11 @@ API_KEY = os.environ["API_KEY"]
 BASE_URL = "https://api.openweathermap.org/data/2.5"
 LAT = 60.192059
 LNG = 24.945831
+
+
+@app.route("/", methods=["POST"])
+def handle_post_request():
+    return "Received POST request"
 
 
 @app.route("/api/location", methods=["POST"])
@@ -48,11 +53,36 @@ def current():
 
 @app.route("/forecast")
 def forecast():
-    r = requests.get(
+    response = requests.get(
         f"{BASE_URL}/forecast?lat={LAT}&lon={LNG}&appid={API_KEY}&units=metric"
     )
+    data = response.json()
 
-    return r.json()
+    temps = []
+
+    for forecast in data["list"]:
+        temp = forecast["main"]
+        weather = forecast["weather"]
+        wind = forecast["wind"]
+        dt = forecast["dt_txt"]
+        temps.append(
+            {
+                "dt": dt,
+                "feels_like": temp["feels_like"],
+                "grnd_level": temp["grnd_level"],
+                "humidity": temp["humidity"],
+                "pressure": temp["pressure"],
+                "sea_level": temp["sea_level"],
+                "temp": temp["temp"],
+                "temp_kf": temp["temp_kf"],
+                "temp_max": temp["temp_max"],
+                "temp_min": temp["temp_min"],
+                "weather": weather,
+                "wind": wind,
+            }
+        )
+
+    return temps
 
 
 @app.route("/reset")
